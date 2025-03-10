@@ -3,14 +3,67 @@
 // - built up break time.
 //   - Granularity of a minute. So won't be distractingly ticking up. Only ticking up every 3 minutes.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@mui/material";
+import { useRxCollection, useRxDB, useRxData } from "rxdb-hooks";
 
 let stopwatchDisplay, setStopwatchDisplay;
 
+function useActiveTimer() {
+  const [timer, setTimer] = useState(null);
+
+  const activeTimers = useRxCollection("activeTimers");
+  // const { result: timers, isFetching } = useRxData("activeTimers", (col) =>
+  //   col.find(),
+  // );
+
+  useEffect(() => {
+    if (!activeTimers) {
+      return;
+    }
+
+    const query = activeTimers.find();
+    const querySub = query.$.subscribe((results) => {
+      if (results.length > 0) {
+        setTimer(results[0]._data);
+      } else {
+        console.log("no active timer, making one");
+        // no active timer
+        activeTimers.insert({
+          created: new Date().toISOString(),
+          elapsed: 0,
+          checkpoint: new Date("2000-01-01").toISOString(),
+          isActive: false,
+          isRunning: false,
+        });
+      }
+    });
+
+    return () => {
+      querySub.unsubscribe();
+    };
+  }, [activeTimers]);
+
+  const setActiveTimer = (newTimer) => {
+    if (!activeTimers) {
+      return;
+    }
+
+    console.log("newTimer", newTimer);
+    activeTimers.incrementalUpsert({
+      ...newTimer,
+    });
+  };
+
+  return [timer, setActiveTimer];
+}
+
 // Elapsed time in seconds.
 function timerLength(timer) {
-  return Math.floor(timer.elapsed + (Date.now() - timer.checkpoint) / 1000);
+  // Stored `timer.elapsed` is a checkpoint. True elapsed for a running timer requires adding the difference between current time and the checkpoint timestamp.
+  return Math.floor(
+    timer.elapsed + (new Date() - new Date(timer.checkpoint)) / 1000,
+  );
 }
 
 // https://stackoverflow.com/a/2998822
@@ -54,33 +107,37 @@ function BreakTime({ ctx, timer }) {
 }
 
 const tickStopwatch = (timer) => () => {
-  console.log(timer);
+  // console.log(timer);
   if (timer.isRunning) {
-    setStopwatchDisplay((Date.now() - timer.checkpoint) / 1000);
+    setStopwatchDisplay(timerLength(timer));
     setTimeout(tickStopwatch(timer), 10);
   }
 };
 
-function Timer({ ctx, timer, setTimer }) {
+function Timer({ ctx }) {
   [stopwatchDisplay, setStopwatchDisplay] = useState(0);
-
-  let runButton;
-  if (timer.isRunning && timer.isActive) {
-    runButton = "Pause";
-  } else if (!timer.isRunning && timer.isActive) {
-    runButton = "Resume";
-  } else {
-    runButton = "Start";
-  }
+  const db = useRxDB();
+  const [timer, setActiveTimer] = useActiveTimer();
 
   // https://www.geeksforgeeks.org/create-a-stop-watch-using-reactjs/
   // Run stopwatch.
   React.useEffect(() => {
     let interval;
 
-    if (timer.isActive && timer.isRunning) {
+    if (!timer) {
+      return;
+    }
+
+    // if (timer.isActive && timer.isRunning) {
+    if (timer.isActive) {
       interval = setInterval(() => {
-        setStopwatchDisplay(timerLength(timer));
+        if (timer.isRunning) {
+          setStopwatchDisplay(timerLength(timer));
+        } else {
+          // timerLength() takes time since last checkpoint into account.
+          // But if timer is paused, only show recorded elapsed time.
+          setStopwatchDisplay(timer.elapsed);
+        }
       });
     } else {
       clearInterval(interval);
@@ -91,6 +148,19 @@ function Timer({ ctx, timer, setTimer }) {
     };
   }, [timer]);
 
+  if (!db || !timer) {
+    return <p>loading...</p>;
+  }
+
+  let runButton;
+  if (timer.isRunning && timer.isActive) {
+    runButton = "Pause";
+  } else if (!timer.isRunning && timer.isActive) {
+    runButton = "Resume";
+  } else {
+    runButton = "Start";
+  }
+
   const handleRunButton = (event) => {
     let newTimer;
     switch (runButton) {
@@ -99,34 +169,37 @@ function Timer({ ctx, timer, setTimer }) {
           ...timer,
           isActive: true,
           isRunning: true,
-          checkpoint: Date.now(),
+          checkpoint: new Date().toISOString(),
         };
         break;
       case "Pause":
         newTimer = {
           ...timer,
           isRunning: false,
-          elapsed: timer.elapsed + (Date.now() - timer.checkpoint) / 1000,
+          elapsed: timerLength(timer), // calculate new true length
         };
         break;
       case "Resume":
         newTimer = {
           ...timer,
           isRunning: true,
-          checkpoint: Date.now(),
+          checkpoint: new Date().toISOString(),
         };
         break;
       default:
         console.error(`runButton was unexpectedly ${runButton}`);
     }
-    setTimer(newTimer);
+    setActiveTimer(newTimer);
   };
 
   const handleStopButton = (event) => {
-    // TODO: Log elapsed time to database.
-    // Though maybe more is "stop/delete the timer".
-    // Maybe is timer state is directly connected to the database already for syncing running timer, and then we track ID of the current timer, and then Stop button will set current timer to None.
-    setTimer({ ...timer, isActive: false, isRunning: false, elapsed: 0 });
+    // TODO: On stop, remove from active timers and move to `timers` collection.
+    setActiveTimer({
+      ...timer,
+      isActive: false,
+      isRunning: false,
+      elapsed: 0,
+    });
     setStopwatchDisplay(0);
   };
 

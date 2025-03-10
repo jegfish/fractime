@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Container, Button } from "@mui/material";
 
 import "./App.css";
@@ -6,17 +6,17 @@ import "./App.css";
 import Timer from "./components/Timer";
 import TimerPicker from "./components/TimerPicker";
 
-function App() {
+function App({ db }) {
   const [ctx, setCtx] = useState({
     frac: 1 / 3,
     accumBreak: 5,
   });
-  const [timer, setTimer] = useState({
-    elapsed: 0,
-    checkpoint: -1, // last time was set to running
-    isActive: false, // have a timer that is paused or running
-    isRunning: false, // timer is counting up
-  });
+  // const [timer, setTimer] = useState({
+  //   elapsed: 0,
+  //   checkpoint: -1, // last time was set to running
+  //   isActive: false, // have a timer that is paused or running
+  //   isRunning: false, // timer is counting up
+  // });
   const _cats = [
     { id: 1, text: "Fractime" },
     { id: 2, text: "Walk" },
@@ -28,7 +28,7 @@ function App() {
 
   return (
     <Container>
-      <Timer ctx={ctx} timer={timer} setTimer={setTimer}></Timer>
+      <Timer ctx={ctx}></Timer>
       <TimerPicker categories={categories}></TimerPicker>
     </Container>
   );

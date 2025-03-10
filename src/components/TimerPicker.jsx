@@ -6,7 +6,7 @@ function Picker({ children }) {
   return <Button variant="contained">{children}</Button>;
 }
 
-export default function TimerPicker({ categories }) {
+export default function TimerPicker({ db, categories }) {
   return (
     <Grid container>
       {categories.map((c) => (

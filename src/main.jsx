@@ -1,16 +1,123 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import "./index.css";
+import { RxDBDevModePlugin } from "rxdb/plugins/dev-mode";
+import { addRxPlugin, createRxDatabase } from "rxdb/plugins/core";
+import { wrappedValidateAjvStorage } from "rxdb/plugins/validate-ajv";
+import { wrappedValidateZSchemaStorage } from "rxdb/plugins/validate-z-schema";
+import { getRxStorageDexie } from "rxdb/plugins/storage-dexie";
+import { Provider } from "rxdb-hooks";
 
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
+import App from "./App.jsx";
+import "./index.css";
+
+addRxPlugin(RxDBDevModePlugin);
+
+const initialize = async () => {
+  const storage = wrappedValidateZSchemaStorage({
+    storage: getRxStorageDexie(),
+  });
+  const db = await createRxDatabase({
+    name: "fractimedb",
+    storage,
+    multiInstance: true, // in case user opens in multiple tabs
+    eventReduce: true,
+  });
+
+  const contextSchema = {
+    version: 0,
+    primaryKey: "id",
+    type: "object",
+    properties: {
+      id: {
+        type: "string",
+        maxLength: 100,
+      },
+    },
+  };
+  const timersSchema = {
+    version: 0,
+    title: "timers schema",
+    primaryKey: "created",
+    type: "object",
+    properties: {
+      created: {
+        type: "string",
+        format: "date-time",
+        // max length: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+        maxLength: 27,
+      },
+      elapsed: {
+        type: "number",
+      },
+    },
+  };
+  const activeTimersSchema = {
+    version: 0,
+    title: "active timers schema",
+    primaryKey: "created",
+    type: "object",
+    properties: {
+      created: {
+        type: "string",
+        format: "date-time",
+        maxLength: 27,
+      },
+      elapsed: {
+        type: "number",
+      },
+      isRunning: {
+        type: "boolean",
+      },
+      checkpoint: {
+        type: "string",
+        format: "date-time",
+        maxLength: 27,
+      },
+      // Whether checkpoint is real or is a placeholder/null value.
+      isActive: {
+        type: "boolean",
+      },
+    },
+  };
+
+  await db.addCollections({
+    // context: {
+    //   schema: contextSchema,
+    // },
+    activeTimers: {
+      schema: activeTimersSchema,
+    },
+    timers: {
+      schema: timersSchema,
+    },
+  });
+
+  return db;
+};
+
+// https://github.com/cvara/rxdb-hooks
+const Root = () => {
+  const [db, setDb] = useState();
+
+  useEffect(() => {
+    initialize().then(setDb);
+  });
+
+  return (
+    <Provider db={db}>
+      <App />
+    </Provider>
+  );
+};
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <Root />
   </React.StrictMode>,
 );
 
