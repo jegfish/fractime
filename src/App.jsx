@@ -5,6 +5,7 @@ import "./App.css";
 
 import Timer from "./components/Timer";
 import TimerPicker from "./components/TimerPicker";
+import DebugDB from "./components/DebugDB";
 
 function App({ db }) {
   const [ctx, setCtx] = useState({
@@ -30,6 +31,7 @@ function App({ db }) {
     <Container>
       <Timer ctx={ctx}></Timer>
       <TimerPicker categories={categories}></TimerPicker>
+      <DebugDB></DebugDB>
     </Container>
   );
 }

@@ -49,7 +49,6 @@ function useActiveTimer() {
       return;
     }
 
-    console.log("newTimer", newTimer);
     activeTimers.incrementalUpsert({
       ...newTimer,
     });
@@ -128,7 +127,6 @@ function Timer({ ctx }) {
       return;
     }
 
-    // if (timer.isActive && timer.isRunning) {
     if (timer.isActive) {
       interval = setInterval(() => {
         if (timer.isRunning) {
