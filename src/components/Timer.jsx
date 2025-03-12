@@ -13,9 +13,6 @@ function useActiveTimer() {
   const [timer, setTimer] = useState(null);
 
   const activeTimers = useRxCollection("activeTimers");
-  // const { result: timers, isFetching } = useRxData("activeTimers", (col) =>
-  //   col.find(),
-  // );
 
   useEffect(() => {
     if (!activeTimers) {
@@ -95,12 +92,14 @@ function Stopwatch({ ctx, timer }) {
 }
 
 function BreakTime({ ctx, timer }) {
-  // const accumBreak = ctx.accumBreak + timerLength(timer) * ctx.frac;
+  // const accumBreak = ctx.accumBreak + timerLength(timer) / ctx.fracDenominator;
   const accumBreak = 0;
 
   return (
     <>
-      <p>Break: {accumBreak}</p>
+      <p>
+        Break: {accumBreak} (fraction: 1/{ctx.fracDenominator})
+      </p>
     </>
   );
 }
@@ -192,23 +191,29 @@ function Timer({ ctx }) {
 
   const handleStopButton = (event) => {
     // TODO: On stop, remove from active timers and move to `timers` collection.
+    setStopwatchDisplay(0);
     setActiveTimer({
       ...timer,
       isActive: false,
       isRunning: false,
       elapsed: 0,
     });
-    setStopwatchDisplay(0);
   };
 
   return (
     <>
       <Stopwatch ctx={ctx} timer={timer}></Stopwatch>
       <BreakTime ctx={ctx} timer={timer}></BreakTime>
-      <Button variant="outlined" onClick={handleRunButton}>
+      <Button
+        variant={runButton === "Start" ? "contained" : "outlined"}
+        onClick={handleRunButton}
+      >
         {runButton}
       </Button>
-      <Button variant="outlined" onClick={handleStopButton}>
+      <Button
+        variant={runButton == "Start" ? "outlined" : "contained"}
+        onClick={handleStopButton}
+      >
         Stop
       </Button>
     </>

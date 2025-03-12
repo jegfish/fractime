@@ -37,6 +37,28 @@ const initialize = async () => {
         type: "string",
         maxLength: 100,
       },
+      data: {
+        type: "object",
+      },
+    },
+  };
+  const tagSchema = {
+    version: 0,
+    primaryKey: "name",
+    type: "object",
+    properties: {
+      name: {
+        type: "string",
+        maxLength: 30,
+      },
+      state: {
+        type: "string",
+        // "on" | "off" | "sticky"
+        maxLength: 6,
+      },
+      isArchived: {
+        type: "boolean",
+      },
     },
   };
   const timersSchema = {
@@ -53,6 +75,13 @@ const initialize = async () => {
       },
       elapsed: {
         type: "number",
+      },
+      tags: {
+        type: "array",
+        uniqueItems: true,
+        items: {
+          type: "string",
+        },
       },
     },
   };
@@ -85,17 +114,25 @@ const initialize = async () => {
     },
   };
 
-  await db.addCollections({
-    // context: {
-    //   schema: contextSchema,
-    // },
-    activeTimers: {
-      schema: activeTimersSchema,
-    },
-    timers: {
-      schema: timersSchema,
-    },
-  });
+  try {
+    await db.addCollections({
+      // context: {
+      //   schema: contextSchema,
+      // },
+      activeTimers: {
+        schema: activeTimersSchema,
+      },
+      timers: {
+        schema: timersSchema,
+      },
+      tags: {
+        schema: tagSchema,
+      },
+    });
+  } catch (err) {
+    // TODO: Remove. Is only for ease of changing DB schema during development.
+    await db.remove();
+  }
 
   return db;
 };

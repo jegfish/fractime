@@ -1,5 +1,21 @@
+// Component for user to pick tags for a timer.
+
+import React, { useState } from "react";
 import Grid from "@mui/material/Grid2";
-import { Button, Card, Box } from "@mui/material";
+import {
+  Button,
+  Card,
+  Box,
+  List,
+  ListItem,
+  IconButton,
+  Checkbox,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useRxData, useRxCollection } from "rxdb-hooks";
 
 // Icon to pick a single timer.
 function Picker({ children }) {
@@ -7,13 +23,29 @@ function Picker({ children }) {
 }
 
 export default function TimerPicker({ db, categories }) {
+  const { result: tags, isFetching } = useRxData("tags", (collection) =>
+    collection.find(),
+  );
+
+  if (isFetching) {
+    return <p>loading...</p>;
+  }
+
   return (
-    <Grid container>
-      {categories.map((c) => (
-        <Grid key={c.id} size={2}>
-          <Picker>{c.text}</Picker>
-        </Grid>
-      ))}
-    </Grid>
+    <>
+      <List sx={{ width: "100%", maxWidth: 360 }}>
+        {tags.map((t, idx) => (
+          <ListItem
+            key={t.name}
+            disablePadding
+            secondaryAction={<Checkbox edge="end" />}
+          >
+            <ListItemButton role={undefined} dense>
+              <ListItemText primary={t.name} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </>
   );
 }

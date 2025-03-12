@@ -9,7 +9,7 @@ import DebugDB from "./components/DebugDB";
 
 function App({ db }) {
   const [ctx, setCtx] = useState({
-    frac: 1 / 3,
+    fracDenominator: 3,
     accumBreak: 5,
   });
   // const [timer, setTimer] = useState({
@@ -19,17 +19,18 @@ function App({ db }) {
   //   isRunning: false, // timer is counting up
   // });
   const _cats = [
-    { id: 1, text: "Fractime" },
-    { id: 2, text: "Walk" },
-    { id: 3, text: "Run" },
-    { id: 4, text: "Fly" },
-    { id: 5, text: "Ski" },
+    { id: 1, text: "fractime" },
+    { id: 2, text: "walk" },
+    { id: 3, text: "run" },
+    { id: 4, text: "fly" },
+    { id: 5, text: "ski" },
   ];
   const [categories, setCategories] = useState(_cats);
 
   return (
     <Container>
       <Timer ctx={ctx}></Timer>
+      <br />
       <TimerPicker categories={categories}></TimerPicker>
       <DebugDB></DebugDB>
     </Container>
