@@ -150,10 +150,8 @@ function Timer({ ctx }) {
   }
 
   let runButton;
-  if (timer.isRunning && timer.isActive) {
-    runButton = "Pause";
-  } else if (!timer.isRunning && timer.isActive) {
-    runButton = "Resume";
+  if (timer.isRunning) {
+    runButton = "Stop";
   } else {
     runButton = "Start";
   }
@@ -169,18 +167,12 @@ function Timer({ ctx }) {
           checkpoint: new Date().toISOString(),
         };
         break;
-      case "Pause":
+      case "Stop":
+        // TODO: On stop, remove from active timers and move to `timers` collection.
         newTimer = {
           ...timer,
           isRunning: false,
-          elapsed: timerLength(timer), // calculate new true length
-        };
-        break;
-      case "Resume":
-        newTimer = {
-          ...timer,
-          isRunning: true,
-          checkpoint: new Date().toISOString(),
+          elapsed: 0,
         };
         break;
       default:
@@ -190,7 +182,6 @@ function Timer({ ctx }) {
   };
 
   const handleStopButton = (event) => {
-    // TODO: On stop, remove from active timers and move to `timers` collection.
     setStopwatchDisplay(0);
     setActiveTimer({
       ...timer,
@@ -204,17 +195,8 @@ function Timer({ ctx }) {
     <>
       <Stopwatch ctx={ctx} timer={timer}></Stopwatch>
       <BreakTime ctx={ctx} timer={timer}></BreakTime>
-      <Button
-        variant={runButton === "Start" ? "contained" : "outlined"}
-        onClick={handleRunButton}
-      >
+      <Button variant="contained" onClick={handleRunButton}>
         {runButton}
-      </Button>
-      <Button
-        variant={runButton == "Start" ? "outlined" : "contained"}
-        onClick={handleStopButton}
-      >
-        Stop
       </Button>
     </>
   );
