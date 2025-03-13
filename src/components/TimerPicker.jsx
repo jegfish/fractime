@@ -47,22 +47,36 @@ export default function TimerPicker({ db, categories }) {
     });
   };
 
+  const handleStickyToggle = (tag) => (event) => {
+    event.preventDefault();
+
+    tag.patch({
+      state: tag.state === "sticky" ? "off" : "sticky",
+    });
+  };
+
   return (
     <>
       <List sx={{ width: "100%", maxWidth: 360 }}>
-        {tags.map((t, idx) => (
+        {tags.map((tag, idx) => (
           <ListItem
-            key={t.name}
+            key={tag.name}
             disablePadding
-            secondaryAction={<Checkbox edge="end" />}
+            secondaryAction={
+              <Checkbox
+                edge="end"
+                checked={tag.state === "sticky"}
+                onChange={handleStickyToggle(tag)}
+              />
+            }
           >
             <ListItemButton
-              onClick={handleTagButton(t)}
+              onClick={handleTagButton(tag)}
               role={undefined}
               dense
-              selected={tagIsOn(t)}
+              selected={tagIsOn(tag)}
             >
-              <ListItemText primary={t.name} />
+              <ListItemText primary={tag.name} />
             </ListItemButton>
           </ListItem>
         ))}
