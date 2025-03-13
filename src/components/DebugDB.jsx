@@ -67,7 +67,7 @@ export default function DebugDB() {
       <h3>timers</h3>
       <ul>
         {tim.map((t, idx) => (
-          <li key={idx}>{t.elapsed}</li>
+          <li key={idx}>{JSON.stringify(t)}</li>
         ))}
       </ul>
     </>

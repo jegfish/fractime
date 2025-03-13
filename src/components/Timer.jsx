@@ -7,6 +7,8 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@mui/material";
 import { useRxCollection, useRxDB, useRxData } from "rxdb-hooks";
 
+import { tagIsOn } from "../utils";
+
 let stopwatchDisplay, setStopwatchDisplay;
 
 function useActiveTimer() {
@@ -145,7 +147,17 @@ function Timer({ ctx }) {
     };
   }, [timer]);
 
-  if (!db || !timer) {
+  const { result: enabledTags, isFetching: isFetchingEnabledTags } = useRxData(
+    "tags",
+    (collection) =>
+      collection.find({
+        selector: {
+          $or: [{ state: { $eq: "on" } }, { state: { $eq: "sticky" } }],
+        },
+      }),
+  );
+
+  if (!db || !timer || isFetchingEnabledTags) {
     return <p>loading...</p>;
   }
 
@@ -160,11 +172,12 @@ function Timer({ ctx }) {
     let newTimer;
     switch (runButton) {
       case "Start":
+        const now = new Date().toISOString();
         newTimer = {
           ...timer,
           isActive: true,
           isRunning: true,
-          checkpoint: new Date().toISOString(),
+          checkpoint: now,
         };
         break;
       case "Stop":
@@ -174,6 +187,23 @@ function Timer({ ctx }) {
           isRunning: false,
           elapsed: 0,
         };
+        // Record completed timer.
+        db.timers.insert({
+          created: timer.checkpoint,
+          elapsed: timerLength(timer),
+          tags: enabledTags.map((tag) => tag.name),
+        });
+        // Turn off all non-sticky tags.
+        const query = db.tags.find({
+          selector: {
+            state: {
+              $eq: "on",
+            },
+          },
+        });
+        query.incrementalPatch({
+          state: "off",
+        });
         break;
       default:
         console.error(`runButton was unexpectedly ${runButton}`);

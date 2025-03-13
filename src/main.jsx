@@ -102,6 +102,9 @@ const initialize = async () => {
       isRunning: {
         type: "boolean",
       },
+      // TODO: Is checkpoint still necessary now that we removed the ability to pause timers?
+      // Currently `created` is set ahead of time. So checkpoint is maybe not quite ready to be primary key.
+      // Even if it is not doing much, it is valuable to be separate from `created` so can handle potential conflicts of ending up with multiple active timers.
       checkpoint: {
         type: "string",
         format: "date-time",
@@ -129,9 +132,11 @@ const initialize = async () => {
         schema: tagSchema,
       },
     });
+
+    // await db.activeTimers.remove();
   } catch (err) {
     // TODO: Remove. Is only for ease of changing DB schema during development.
-    await db.remove();
+    // await db.remove();
   }
 
   return db;

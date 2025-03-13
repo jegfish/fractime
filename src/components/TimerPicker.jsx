@@ -17,7 +17,7 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRxData, useRxCollection } from "rxdb-hooks";
 
-const tagIsOn = (tag) => tag.state === "on" || tag.state === "sticky";
+import { tagIsOn } from "../utils";
 
 // Icon to pick a single timer.
 function Picker({ children }) {
@@ -42,7 +42,7 @@ export default function TimerPicker({ db, categories }) {
       return;
     }
 
-    tag.patch({
+    tag.incrementalPatch({
       state: tag.state === "on" ? "off" : "on",
     });
   };
@@ -50,7 +50,7 @@ export default function TimerPicker({ db, categories }) {
   const handleStickyToggle = (tag) => (event) => {
     event.preventDefault();
 
-    tag.patch({
+    tag.incrementalPatch({
       state: tag.state === "sticky" ? "off" : "sticky",
     });
   };
