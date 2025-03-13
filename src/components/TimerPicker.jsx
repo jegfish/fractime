@@ -24,7 +24,11 @@ function Picker({ children }) {
 
 export default function TimerPicker({ db, categories }) {
   const { result: tags, isFetching } = useRxData("tags", (collection) =>
-    collection.find(),
+    collection.find({
+      selector: {
+        isArchived: false,
+      },
+    }),
   );
 
   if (isFetching) {
