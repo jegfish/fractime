@@ -17,6 +17,8 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useRxData, useRxCollection } from "rxdb-hooks";
 
+const tagIsOn = (tag) => tag.state === "on" || tag.state === "sticky";
+
 // Icon to pick a single timer.
 function Picker({ children }) {
   return <Button variant="contained">{children}</Button>;
@@ -35,6 +37,16 @@ export default function TimerPicker({ db, categories }) {
     return <p>loading...</p>;
   }
 
+  const handleTagButton = (tag) => (event) => {
+    if (tag.state === "sticky") {
+      return;
+    }
+
+    tag.patch({
+      state: tag.state === "on" ? "off" : "on",
+    });
+  };
+
   return (
     <>
       <List sx={{ width: "100%", maxWidth: 360 }}>
@@ -44,7 +56,12 @@ export default function TimerPicker({ db, categories }) {
             disablePadding
             secondaryAction={<Checkbox edge="end" />}
           >
-            <ListItemButton role={undefined} dense>
+            <ListItemButton
+              onClick={handleTagButton(t)}
+              role={undefined}
+              dense
+              selected={tagIsOn(t)}
+            >
               <ListItemText primary={t.name} />
             </ListItemButton>
           </ListItem>
