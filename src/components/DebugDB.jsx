@@ -61,7 +61,7 @@ export default function DebugDB() {
       <h3>tags</h3>
       <ul>
         {tags.map((t, idx) => (
-          <li key={t.name}>{t.name}</li>
+          <li key={t.name}>{JSON.stringify(t)}</li>
         ))}
       </ul>
       <h3>timers</h3>
