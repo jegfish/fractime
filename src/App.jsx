@@ -10,7 +10,7 @@ import DebugDB from "./components/DebugDB";
 function App({ db }) {
   const [ctx, setCtx] = useState({
     fracDenominator: 3,
-    accumBreak: 5,
+    accumBreak: 0,
   });
   // const [timer, setTimer] = useState({
   //   elapsed: 0,

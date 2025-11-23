@@ -94,8 +94,8 @@ function Stopwatch({ ctx, timer }) {
 }
 
 function BreakTime({ ctx, timer }) {
-  // const accumBreak = ctx.accumBreak + timerLength(timer) / ctx.fracDenominator;
-  const accumBreak = 0;
+  const accumBreak = Math.floor(ctx.accumBreak + timerLength(timer) / ctx.fracDenominator / 60);
+  // const accumBreak = 0;
 
   return (
     <>
